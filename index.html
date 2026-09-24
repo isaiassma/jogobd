@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Cyber Arena - Jogo de sobrevivência e ação em arena única. Sobreviva a ondas de inimigos neon com controles fluidos para PC e celular.">
+  <title>CYBER ARENA // Sobrevivência Neon</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Container principal do jogo (área fixa, sem rolagem) -->
+  <div id="game-wrapper">
+    <!-- Canvas onde a ação acontece -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD Superior -->
+    <header id="hud" class="hud-layer">
+      <div class="hud-group hud-left">
+        <div class="stat-card score-card">
+          <span class="stat-label">PONTOS</span>
+          <span id="score-display" class="stat-value">0</span>
+        </div>
+        <div class="stat-card combo-card" id="combo-container">
+          <span class="stat-label">COMBO</span>
+          <span id="combo-display" class="stat-value">x1.0</span>
+          <div class="combo-bar-track">
+            <div id="combo-bar-fill" class="combo-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-group hud-center">
+        <div class="stat-card timer-card">
+          <span class="stat-label">TEMPO</span>
+          <span id="timer-display" class="stat-value">00:00</span>
+        </div>
+      </div>
+
+      <div class="hud-group hud-right">
+        <div class="health-container">
+          <div class="health-header">
+            <span class="stat-label">INTEGRIDADE</span>
+            <span id="hp-text" class="stat-value-sm">100/100</span>
+          </div>
+          <div class="health-bar-track">
+            <div id="shield-bar-fill" class="shield-bar-fill"></div>
+            <div id="hp-bar-fill" class="health-bar-fill"></div>
+          </div>
+        </div>
+
+        <div class="hud-actions">
+          <button id="btn-sound" class="icon-btn" title="Alternar Som" aria-label="Som">
+            <svg id="icon-sound-on" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+            <svg id="icon-sound-off" class="hidden" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+            </svg>
+          </button>
+          <button id="btn-pause" class="icon-btn" title="Pausar Jogo" aria-label="Pausa">
+            <svg id="icon-pause" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+            <svg id="icon-play" class="hidden" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Indicador de Buff Ativo / Armas -->
+    <div id="buff-indicator" class="buff-indicator hidden">
+      <span id="buff-icon">⚡</span>
+      <span id="buff-text">DISPARO TRIPLO</span>
+      <div class="buff-timer-bar">
+        <div id="buff-timer-fill"></div>
+      </div>
+    </div>
+
+    <!-- Mensagens de Notificação no centro da tela (Nível, Alerta, etc.) -->
+    <div id="center-banner" class="center-banner hidden">
+      <h2 id="banner-title">ONDA DE CHOQUE</h2>
+      <p id="banner-subtitle">INIMIGOS MAIS RÁPIDOS!</p>
+    </div>
+
+    <!-- Controles Virtuais Touch (Mobile) -->
+    <div id="touch-controls" class="touch-layer">
+      <!-- Joystick Analógico Virtual (Esquerda) -->
+      <div id="joystick-zone">
+        <div id="joystick-base">
+          <div id="joystick-knob"></div>
+        </div>
+      </div>
+
+      <!-- Botões de Ação Virtual (Direita) -->
+      <div id="action-zone">
+        <button id="btn-touch-dash" class="touch-action-btn dash-btn" aria-label="Esquiva">
+          <span class="btn-subtext">DASH</span>
+          <div class="btn-cd-overlay" id="dash-cd-overlay"></div>
+        </button>
+        <button id="btn-touch-bomb" class="touch-action-btn bomb-btn" aria-label="Bomba Nova">
+          <span class="btn-subtext">EMP</span>
+          <span id="bomb-count-badge" class="badge">1</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Overlay de Boas-Vindas / Tutorial Rápido (Início Instantâneo) -->
+    <div id="start-overlay" class="modal-overlay">
+      <div class="modal-card">
+        <div class="card-glow"></div>
+        <div class="modal-header">
+          <span class="sub-tag">CYBER ARENA v2.0</span>
+          <h1 class="glitch-title" data-text="SOBREVIVA">SOBREVIVA</h1>
+          <p class="tagline">Aniquile os invasores cibernéticos e domine a arena!</p>
+        </div>
+
+        <div class="instructions-grid">
+          <div class="instr-col">
+            <span class="instr-device">💻 NO COMPUTADOR</span>
+            <ul class="instr-list">
+              <li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou <kbd>SETAS</kbd> para Mover</li>
+              <li><kbd>MOUSE</kbd> para Mirar (Disparo Automático ou <kbd>L-CLICK</kbd>)</li>
+              <li><kbd>ESPAÇO</kbd> ou <kbd>R-CLICK</kbd> para Esquiva Rápida (Dash)</li>
+              <li><kbd>E</kbd> ou <kbd>Q</kbd> para Bomba EMP (Limpar Arena)</li>
+            </ul>
+          </div>
+          <div class="instr-col">
+            <span class="instr-device">📱 NO CELULAR</span>
+            <ul class="instr-list">
+              <li><strong>Polegar Esquerdo:</strong> Joystick para mover</li>
+              <li><strong>Mira:</strong> Automática no inimigo mais próximo</li>
+              <li><strong>Botão DASH:</strong> Esquiva rápida temporária</li>
+              <li><strong>Botão EMP:</strong> Detonar bomba de choque</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-start" class="primary-btn pulse-anim">
+            <span>INICIAR COMBATE</span>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay de Pausa -->
+    <div id="pause-overlay" class="modal-overlay hidden">
+      <div class="modal-card mini-card">
+        <div class="card-glow"></div>
+        <h2>JOGO PAUSADO</h2>
+        <p class="dim-text">O tempo está congelado no ciberespaço.</p>
+        <div class="modal-actions vert">
+          <button id="btn-resume" class="primary-btn">
+            <span>CONTINUAR</span>
+          </button>
+          <button id="btn-restart-pause" class="secondary-btn">
+            <span>REINICIAR PARTIDA</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay de Game Over -->
+    <div id="gameover-overlay" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="card-glow red-glow"></div>
+        <div class="modal-header">
+          <span class="sub-tag danger-tag">SINAL CIBERNÉTICO PERDIDO</span>
+          <h2 class="gameover-title">FIM DE JOGO</h2>
+        </div>
+
+        <div class="results-grid">
+          <div class="result-box main-score">
+            <span class="label">PONTUAÇÃO FINAL</span>
+            <span id="final-score" class="big-value">0</span>
+          </div>
+          <div class="result-box">
+            <span class="label">RECORDE</span>
+            <span id="high-score" class="med-value">0</span>
+          </div>
+          <div class="result-box">
+            <span class="label">TEMPO DE SOBREVIVÊNCIA</span>
+            <span id="final-time" class="med-value">00:00</span>
+          </div>
+          <div class="result-box">
+            <span class="label">INIMIGOS ELIMINADOS</span>
+            <span id="final-kills" class="med-value">0</span>
+          </div>
+          <div class="result-box">
+            <span class="label">ONDA MÁXIMA</span>
+            <span id="final-wave" class="med-value">1</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-restart" class="primary-btn pulse-anim">
+            <span>JOGAR NOVAMENTE</span>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
